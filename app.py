@@ -1,28 +1,28 @@
-from models import User
-from flask import Flask, render_template, request, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, render_template, request, redirect, url_for, session
+from werkzeug.utils import secure_filename
 import os
+import sqlite3
+from models import init_db
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database/users.db'
+app.secret_key = 'secret_key_here'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
-db = SQLAlchemy(app)
 
+# Call DB init
+init_db()
 
-# Step 1 route
+@app.route('/')
+def home():
+    return redirect(url_for('signup_step1'))
 
-@app.route('/', methods=['GET', 'POST'])
-def step1():
+@app.route('/signup/step1', methods=['GET', 'POST'])
+def signup_step1():
     if request.method == 'POST':
-        # Save data to session or db temporarily
-        return redirect(url_for('step2'))
-    return render_template('step1.html')
+        session['full_name'] = request.form['full_name']
+        session['email'] = request.form['email']
+        session['password'] = request.form['password']
+        session['confirm_password'] = request.form['confirm_password']
+        return redirect(url_for('signup_step2'))
+    return render_template('signup_step1.html')
 
-# (More steps will be added later...)
-
-
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+# signup_step2 and signup_step3 routes will follow next
